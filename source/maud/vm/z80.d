@@ -41,7 +41,7 @@ enum RE{
 	PCh,
 
 	AP,
-	AFP,
+	AFP = AP,
 	FP,
 
 	BP,
@@ -164,6 +164,7 @@ class Z80VM //: VMInterface
 	}
 
 	void restart(){
+		time_i = 0;
 		reg[0..RE._ERROR-1] = 0;
 		PCs = 0;
 	}
@@ -220,12 +221,14 @@ class Z80VM //: VMInterface
 								}
 								break;
 							case 3://JR d
-								reg2[RE.PC2] += cast (byte)(fetch(reg2[RE.PC2]) + 1);
+								reg2[RE.PC2]++;
+								reg2[RE.PC2] += cast (byte)(fetch(PCs + 1));
 								time_i+=8;
 								break;
 							default://JR cc, d
 								if(cc_t(cast(ubyte)(y_code-4))){
-									reg2[RE.PC2] += cast (byte)(fetch(reg2[RE.PC2]) + 1);
+									reg2[RE.PC2]++;
+									reg2[RE.PC2] += cast (byte)(fetch(PCs + 1));
 									time_i+=12;
 								}else time_i+=7;
 						}
@@ -233,7 +236,7 @@ class Z80VM //: VMInterface
 					case 1:
 						switch(q_code){
 							case 0: //LD rr, nn
-								m[rp_t(p_code) +1] = fetch(PCs + 2);  //#Orden correcto?
+								m[rp_t(p_code) +1] = fetch(PCs + 2);  //TODO: Orden correcto?
 								m[rp_t(p_code)] = fetch(PCs + 1);
 								reg2[RE.PC2]+=2;
 								time_i+=10;

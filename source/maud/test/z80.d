@@ -60,20 +60,58 @@ int[2] testVM(){
 		vm.setRegister(RE.B,1);
 		vm.execStep();
 
-		writeln(vm.register2(RE.PC2));
 		pass = pass && (vm.register2(RE.PC2) == 0x2);
 
 		vm.execStep();
-		writeln(vm.register2(RE.PC2));
 		pass = pass && (vm.register2(RE.PC2) == 0x9);
 
 		vm.execStep();
-		writeln(vm.register2(RE.PC2));
 		pass = pass && (vm.register2(RE.PC2) == 0x0);
 
 		return pass;
 	}
-	mixin(TestElem!(LD_RR_NN,DJNZ_D));
+
+	bool JR_D(){
+		vm.restart();
+		pass = true;
+		
+		zero[0] = 0x18;
+		zero[1] = 0x01;
+
+		zero[3] = 0x18;
+		zero[4] = cast(ubyte)(-3);
+
+		vm.execStep();
+		pass = pass && (vm.register2(RE.PC2) == 0x3);
+		
+		vm.execStep();
+		pass = pass && (vm.register2(RE.PC2) == 0x2);
+
+		return pass;
+	}
+
+	bool EX_AF_AF(){
+		vm.restart();
+		pass = true;
+		
+		zero[0] = 0x08;
+		zero[1] = 0x08;
+		
+		vm.setRegister(RE.A,0xBA);
+		vm.setRegister(RE.F,0xCA);
+
+		vm.execStep();
+		pass = pass && (vm.register(RE.AP) == 0xBA);
+		pass = pass && (vm.register(RE.FP) == 0xCA);
+
+		vm.execStep();
+		pass = pass && (vm.register(RE.A) == 0xBA);
+		pass = pass && (vm.register(RE.A) == 0xBA);
+
+		return pass;
+	}
+
+	mixin(TestElem!(LD_RR_NN,DJNZ_D,JR_D,EX_AF_AF));
 
 	return [passed, nopassed];
 }
