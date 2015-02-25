@@ -10,6 +10,7 @@ int[2] testVM(){
 
 	StdDump dumper = new StdDump();
 	dumper.setWordSize(2);
+
 	auto mem = arrayMem.create(64*1024);
 	auto zero = mem.getAddress(0);
 	auto vm = new Z80VM(mem);
@@ -18,23 +19,61 @@ int[2] testVM(){
 	bool LD_RR_NN(){
 		vm.restart();
 		pass = true;
+		//LD SP, 201H
 		zero[0] = 0x31;
 		zero[1] = 0x01;
 		zero[2] = 0x02;
+		//LD HL, 1211H
+		zero[3] = 0x21;
+		zero[4] = 0x11;
+		zero[5] = 0x12;
+		//LD BC, FFAAH
+		zero[6] = 0x01;
+		zero[7] = 0xAA;
+		zero[8] = 0xFF;
 
 		vm.execStep();
 		pass = pass && (vm.register2(RE.SP2) == 0x201);
+
+		vm.execStep();
+		pass = pass && (vm.register2(RE.HL2) == 0x1211);
+
+		vm.execStep();
+		pass = pass && (vm.register2(RE.BC2) == 0xFFAA);
+
 		return pass;
 	}
+
 	bool DJNZ_D(){
 		vm.restart();
 		pass = true;
-		vm.setRegister(RE.B,2);
+
+		zero[0] = 0x10;
+		zero[1] = 0x05;
+
+		zero[2] = 0x10;
+		zero[3] = 0x05;
+
+		zero[9] = 0x10;
+		zero[10] = cast(ubyte)-0xB;
+
+		vm.setRegister(RE.B,1);
 		vm.execStep();
-		pass = pass && (vm.register2(RE.SP2) == 0x201);
+
+		writeln(vm.register2(RE.PC2));
+		pass = pass && (vm.register2(RE.PC2) == 0x2);
+
+		vm.execStep();
+		writeln(vm.register2(RE.PC2));
+		pass = pass && (vm.register2(RE.PC2) == 0x9);
+
+		vm.execStep();
+		writeln(vm.register2(RE.PC2));
+		pass = pass && (vm.register2(RE.PC2) == 0x0);
+
 		return pass;
 	}
-	mixin(TestElem!(LD_RR_NN,LD_RR_NN,LD_RR_NN));
+	mixin(TestElem!(LD_RR_NN,DJNZ_D));
 
 	return [passed, nopassed];
 }
@@ -49,7 +88,13 @@ template TestElem(T...){
 	}else{
 		enum id = __traits(identifier,T[0]);
 		enum TestElem = "write(\""~id~"  \");"
-			"writeln( "~id~"() ? \"PASSED\" : \"FAILED\"); "~
-			TestElem!(T[0..$-1]);
+			"if("~id~"()){"
+				"writeln(\"PASSED\");"
+				"passed++;"
+			"}else{"
+				"writeln(\"FAILED\");"
+				"passed++;"
+				"}"~
+			TestElem!(T[1..$]);
 	}
 }
