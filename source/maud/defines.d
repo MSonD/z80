@@ -1,20 +1,16 @@
 ﻿module maud.defines;
 
 version(SAFE){
-	pragma(msg,"Compilando con comprobacion de limites");
+	pragma(msg,"Compiling with limit checking");
 }
+
+//More than actual checks, a reminder 
+static assert(cast(ubyte)(-3) == cast(ubyte)(~3 + 1), "Platform error, negation is not two's complement");
+static assert(cast(ubyte)(0xAB0A) == 0x0A, "Platform error, not little endian or unexpected casting behavior");
 
 alias uint pword;
 
 struct Token{
-	enum : uint{
-		_NULL,
-		_INST_MIN,
-		MOV,
-		PUSH,
-		_INST_MAX,
-		NUMBER,
-	}
 	uint type;
 	pword payload;
 }

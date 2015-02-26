@@ -3,6 +3,7 @@ import maud.vm.vmi;
 import std.functional;
 version (SAFE) import maud.vm.error;
 
+
 struct OpData{
 	string mnem;
 	size_t oplen;
@@ -228,7 +229,7 @@ class Z80VM //: VMInterface
 							default://JR cc, d
 								if(cc_t(cast(ubyte)(y_code-4))){
 									reg2[RE.PC2]++;
-									reg2[RE.PC2] += cast (byte)(fetch(PCs + 1));
+									reg2[RE.PC2] += m[rp_t(p_code)];
 									time_i+=12;
 								}else time_i+=7;
 						}
@@ -236,12 +237,24 @@ class Z80VM //: VMInterface
 					case 1:
 						switch(q_code){
 							case 0: //LD rr, nn
-								m[rp_t(p_code) +1] = fetch(PCs + 2);  //TODO: Orden correcto?
+								m[rp_t(p_code) +1] = fetch(PCs + 2);  //TODO: Check endianess
 								m[rp_t(p_code)] = fetch(PCs + 1);
 								reg2[RE.PC2]+=2;
 								time_i+=10;
 								break;
-							case 1:
+							case 1: 
+								tmp2 = reg2[RE.HL2];
+								ushort tmp3 = *cast (short*)(m+rp_t(p_code));
+								tmp2 += *cast (short*)(m+rp_t(p_code));
+								reg2[RE.HL2] = tmp2 & 0xFFFF;
+								reg[RE.F] &= ~FLAG_MASK.N;
+								if(tmp2 >> 16 == 0){
+									reg[RE.F] &= ~FLAG_MASK.C;
+									/*No zero flag (?) */
+								}else{
+									reg[RE.F] |= FLAG_MASK.C;
+								}
+								//TODO: Half carry
 								break;
 							default:
 						}

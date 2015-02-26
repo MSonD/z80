@@ -74,10 +74,11 @@ int[2] testVM(){
 	bool JR_D(){
 		vm.restart();
 		pass = true;
-		
+
+		//JR 1
 		zero[0] = 0x18;
 		zero[1] = 0x01;
-
+		//JR -3
 		zero[3] = 0x18;
 		zero[4] = cast(ubyte)(-3);
 
@@ -111,7 +112,36 @@ int[2] testVM(){
 		return pass;
 	}
 
-	mixin(TestElem!(LD_RR_NN,DJNZ_D,JR_D,EX_AF_AF));
+	bool ADD_HL_RR(){
+		vm.restart();
+		pass = true;
+
+		//ADD HL, BC
+		zero[0] = 0x09;
+		//ADD HL, DE
+		zero[1] = 0x19;
+		//ADD HL, SP
+		zero[2] = 0x39;
+
+		vm.setRegister2(RE.HL2,0xABCD);
+		vm.setRegister2(RE.BC2,0x2110);
+		vm.setRegister2(RE.DE2,cast(ushort)(~0xF + 1));
+		vm.setRegister2(RE.SP2,cast (ushort)(0xF - 0xCCDD));
+
+		vm.execStep();
+		pass = pass && (vm.register2(RE.HL2) == 0xCCDD);
+		pass = pass && !(vm.register(RE.F) & FLAG_MASK.N);
+		pass = pass && !(vm.register(RE.F) & FLAG_MASK.C);
+
+		vm.execStep();
+		pass = pass && (vm.register2(RE.HL2) == 0xCCDD - 0xF);
+
+		vm.execStep();
+		pass = pass && (vm.register2(RE.HL2) == 0);
+		return pass;
+	}
+
+	mixin(TestElem!(LD_RR_NN,DJNZ_D,JR_D,EX_AF_AF,ADD_HL_RR));
 
 	return [passed, nopassed];
 }
@@ -131,7 +161,7 @@ template TestElem(T...){
 				"passed++;"
 			"}else{"
 				"writeln(\"FAILED\");"
-				"passed++;"
+				"nopassed++;"
 				"}"~
 			TestElem!(T[1..$]);
 	}

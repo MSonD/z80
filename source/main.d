@@ -6,7 +6,8 @@ import maud.test.z80;
 
 void main(string[] args)
 {
-	testVM();
+	writeln("Executing test cases...");
+	writeln("[passed, failed]: ",testVM());
 	stdin.readln();
 }
 
