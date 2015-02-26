@@ -227,9 +227,9 @@ class Z80VM //: VMInterface
 								time_i+=8;
 								break;
 							default://JR cc, d
+								reg2[RE.PC2]++;
 								if(cc_t(cast(ubyte)(y_code-4))){
-									reg2[RE.PC2]++;
-									reg2[RE.PC2] += m[rp_t(p_code)];
+									reg2[RE.PC2] +=  cast (byte)(fetch(PCs + 1));
 									time_i+=12;
 								}else time_i+=7;
 						}

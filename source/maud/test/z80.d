@@ -91,6 +91,38 @@ int[2] testVM(){
 		return pass;
 	}
 
+
+	bool JR_CC_D(){
+		vm.restart();
+		pass = true;
+		
+		//JR NZ, FF
+		zero[0] = 0x20;
+		zero[1] = 0xFF;
+		//JR Z, +1
+		zero[2] = 0x28;
+		zero[3] = 0x01;
+		//JR NC, +0 
+		zero[5] = 0x30;
+		zero[6] = 0;
+		//JR C, FF
+		zero[7] = 0x38;
+		zero[8] = 0xFF;
+
+		vm.setRegister(RE.F,FLAG_MASK.Z);
+		vm.execStep();
+		pass = pass && (vm.register2(RE.PC2) == 0x2);
+		vm.execStep();
+		pass = pass && (vm.register2(RE.PC2) == 0x5);
+
+		vm.execStep();
+		pass = pass && (vm.register2(RE.PC2) == 0x7);
+
+		vm.execStep();
+		pass = pass && (vm.register2(RE.PC2) == 0x9);
+		return pass;
+	}
+
 	bool EX_AF_AF(){
 		vm.restart();
 		pass = true;
@@ -141,7 +173,7 @@ int[2] testVM(){
 		return pass;
 	}
 
-	mixin(TestElem!(LD_RR_NN,DJNZ_D,JR_D,EX_AF_AF,ADD_HL_RR));
+	mixin(TestElem!(LD_RR_NN,DJNZ_D,JR_D,JR_CC_D,EX_AF_AF,ADD_HL_RR));
 
 	return [passed, nopassed];
 }
