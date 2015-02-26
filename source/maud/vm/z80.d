@@ -242,7 +242,7 @@ class Z80VM //: VMInterface
 								reg2[RE.PC2]+=2;
 								time_i+=10;
 								break;
-							case 1: 
+							case 1://ADD HL, rr 
 								tmp2 = reg2[RE.HL2];
 								ushort tmp3 = *cast (short*)(m+rp_t(p_code));
 								tmp2 += *cast (short*)(m+rp_t(p_code));
