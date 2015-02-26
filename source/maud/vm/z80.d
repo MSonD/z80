@@ -144,10 +144,35 @@ class Z80VM //: VMInterface
 
 	ubyte fetch(uint idx){
 		version (SAFE)
-			if (PCs >= pro_mem_idx)
-				throw new VMProtectionException(PCs);
+			if (idx >= pro_mem_idx)
+				throw new VMProtectionException(idx);
 		return m[idx];
 
+	}
+
+	ushort fetch2(uint idx){
+		version (SAFE)
+			if (idx + 1 >= pro_mem_idx)
+				throw new VMProtectionException(idx);
+		return m[idx] + (m[idx+1] << 8);
+		
+	}
+
+	void store(uint idx,ubyte wha){
+		version (SAFE)
+			if (idx >= pro_mem_idx)
+				throw new VMProtectionException(idx);
+		m[idx] = wha;
+		
+	}
+	void store2(uint idx,ushort wha){
+
+		version (SAFE)
+			if (idx + 1 >= pro_mem_idx)
+				throw new VMProtectionException(idx);
+		m[idx] = wha & 0xFF;
+		m[idx] = (wha >> 8);
+		
 	}
 
 	ubyte register(RE regs){
@@ -190,10 +215,7 @@ class Z80VM //: VMInterface
 		z_code = (opcode & OP_MASK.z);
 		p_code = (opcode & OP_MASK.p) >> 4;
 		q_code = (opcode & OP_MASK.q) >> 3;
-		reg2[RE.PC2]++;
 
-		//writeln("OP:",opcode," x:",x_code," z:",z_code," y:",y_code);
-				
 		switch(x_code){
 			case 0:
 				switch(z_code){
@@ -202,6 +224,7 @@ class Z80VM //: VMInterface
 							case 0: //NOP
 								//if(tokens) tokens("NOP");
 								time_i+=4;
+								skip;
 								break;
 							case 1: //EX AF AF'
 								tmp2 = reg2[RE.AF2];
@@ -209,25 +232,26 @@ class Z80VM //: VMInterface
 								reg2[RE.AFP2] = tmp2;
 								time_i+=4;
 								//if(tokens) tokens("EX AF, AF'");
+								skip;
 								break;
 							case 2://DJNZ d
+								skip(2);
 								tmp = fetch(PCs + 1); //#PCs
 								if(--reg[RE.B] == 0){
-									reg2[RE.PC2]++;
 									time_i+=8;
 								}
 								else{
-									reg2[RE.PC2] += cast (byte)(tmp + 1);
+									reg2[RE.PC2] += cast (byte)(tmp);
 									time_i+=13;
 								}
 								break;
 							case 3://JR d
-								reg2[RE.PC2]++;
+								skip(2);
 								reg2[RE.PC2] += cast (byte)(fetch(PCs + 1));
 								time_i+=8;
 								break;
 							default://JR cc, d
-								reg2[RE.PC2]++;
+								skip(2);
 								if(cc_t(cast(ubyte)(y_code-4))){
 									reg2[RE.PC2] +=  cast (byte)(fetch(PCs + 1));
 									time_i+=12;
@@ -237,14 +261,14 @@ class Z80VM //: VMInterface
 					case 1:
 						switch(q_code){
 							case 0: //LD rr, nn
+								skip(3);
 								m[rp_t(p_code) +1] = fetch(PCs + 2);  //TODO: Check endianess
 								m[rp_t(p_code)] = fetch(PCs + 1);
-								reg2[RE.PC2]+=2;
 								time_i+=10;
 								break;
 							case 1://ADD HL, rr 
+								skip;
 								tmp2 = reg2[RE.HL2];
-								ushort tmp3 = *cast (short*)(m+rp_t(p_code));
 								tmp2 += *cast (short*)(m+rp_t(p_code));
 								reg2[RE.HL2] = tmp2 & 0xFFFF;
 								reg[RE.F] &= ~FLAG_MASK.N;
@@ -254,9 +278,51 @@ class Z80VM //: VMInterface
 								}else{
 									reg[RE.F] |= FLAG_MASK.C;
 								}
+								time_i+=11;
 								//TODO: Half carry
 								break;
 							default:
+						}
+						break;
+					case 2:
+						if(q_code == 0){
+							switch(p_code){
+								case 0://LD (BC), A
+									skip;
+									store(reg2[RE.BC2],reg[RE.A]);
+									time_i+=7;
+									break;
+								case 1://LD (DE), A
+									skip;
+									store(reg2[RE.DE2],reg[RE.A]);
+									time_i+=7;
+									break;
+								case 2://LD (nn), HL
+									skip(3);
+									store2(fetch2(PCs+1),reg2[RE.HL2]);
+									time_i += 16;
+									break;
+								case 3://LD (nn), A
+									skip(3);
+									store(fetch2(PCs+1),reg[RE.A]);
+									time_i +=13;
+									break;
+								default:
+							}
+						}else{
+							switch(p_code){
+								case 0://LD A, (BC)
+									skip;
+									reg[RE.A] = fetch(reg2[RE.BC2]);
+									time_i+=7;
+									break;
+								case 1://LD A, (DE)
+									skip;
+									reg[RE.A] = fetch(reg2[RE.DE2]);
+									time_i+=7;
+									break;
+								default:
+							}
 						}
 						break;
 					default:
@@ -272,12 +338,16 @@ class Z80VM //: VMInterface
 	}
 	
 	//private{
-	size_t r_t(ubyte opcode){
+	void skip(ushort k = 1){
+		reg2[RE.PC2]+=k;
+	}
+	size_t r_t(ubyte opcode, ref size_t i){
 		immutable ubyte map[] = [RE.B,RE.C,RE.D,RE.E,RE.H,RE.L,RE._ERROR,RE.A];
 		version (SAFE)
 			if(opcode >= map.length)
 				throw new VMInternalException("Opcode-r fuera de rango");
 		if(opcode == 6){
+			//TODO:add time_i displcement for this fetch mode
 			auto ptr = reg2[RE.HL2];
 			version (SAFE)
 				if(ptr >= stack_idx)

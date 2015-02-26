@@ -16,6 +16,10 @@ int[2] testVM(){
 	auto vm = new Z80VM(mem);
 	bool pass;
 
+	void vali(bool premise){
+		pass = pass & premise;
+	}
+
 	bool LD_RR_NN(){
 		vm.restart();
 		pass = true;
@@ -173,7 +177,48 @@ int[2] testVM(){
 		return pass;
 	}
 
-	mixin(TestElem!(LD_RR_NN,DJNZ_D,JR_D,JR_CC_D,EX_AF_AF,ADD_HL_RR));
+	bool LD_mRR_A (){
+		vm.restart();
+		pass = true;
+		
+		//LD (BC), A
+		zero[0] = 0x02;
+
+		//LD (DE), A
+		vm.setRegister(RE.A,0x12);
+		vm.setRegister2(RE.BC2,0x0001);
+		vm.setRegister2(RE.BC2,0x0042);
+		
+		vm.execStep();
+		vm.execStep();
+		vali (zero[0x42] == 0x12);
+		
+		return pass;
+	}
+
+	bool LD_A_mRR (){
+		vm.restart();
+		pass = true;
+
+		//LD A, (BC)
+		zero[0] = 0x0A;
+		//LD A, (DE)
+		zero[1] = 0x1A;
+		zero[0xDED] = 0xBE;
+
+		vm.setRegister2(RE.BC2,0x0001);
+		vm.setRegister2(RE.DE2,0x0DED);
+
+		vm.execStep();
+		vali (vm.register(RE.A) == 0x1A);
+		vm.execStep();
+		vali (vm.register(RE.A) == 0xBE);
+
+		return pass;
+	}
+
+
+	mixin(TestElem!(LD_RR_NN,DJNZ_D,JR_D,JR_CC_D,EX_AF_AF,ADD_HL_RR,LD_mRR_A,LD_A_mRR));
 
 	return [passed, nopassed];
 }
