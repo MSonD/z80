@@ -9,8 +9,3 @@ static assert(cast(ubyte)(-3) == cast(ubyte)(~3 + 1), "Platform error, negation 
 static assert(cast(ubyte)(0xAB0A) == 0x0A, "Platform error, not little endian or unexpected casting behavior");
 
 alias uint pword;
-
-struct Token{
-	uint type;
-	pword payload;
-}

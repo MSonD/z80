@@ -2,102 +2,7 @@
 import maud.vm.vmi;
 import std.functional;
 version (SAFE) import maud.vm.error;
-
-
-struct OpData{
-	string mnem;
-	size_t oplen;
-	size_t ndirs;
-	size_t runtime;
-}
-
-//Registros
-enum RE{
-	A = 0,
-	AF = 0,
-	F,
-
-	B,
-	BC = B,
-	C,
-
-	D,
-	DE = D,
-	E,
-
-	H,
-	HL = H,
-	L,
-
-	IX,
-	IXh,
-
-	IY,
-	IYh,
-
-	SP,
-	SPh,
-
-	PC,
-	PCh,
-
-	AP,
-	AFP = AP,
-	FP,
-
-	BP,
-	BCP = BP,
-	CP,
-
-	DP,
-	DEP = DP,
-	EP,
-
-	HP,
-	HLP = HP,
-	LP,
-
-	AF2 = AF/2,
-	BC2 = BC/2,
-	DE2 = DE/2,
-	HL2 = HL/2,
-	PC2 = PC/2,
-	SP2 = SP/2,
-	AFP2 = AFP/2, 
-	BCP2 = BCP/2,
-	DEP2 = DEP/2,
-	HLP2 = HLP/2,
-	_ERROR = LP+1
-	
-}
-enum FLAG_MASK : ubyte{
-	C = 0b1,
-	N = 0b10,
-	PV = 0b100,
-	H = 0b10000,
-	Z = 0b1000000,
-	S = 0b10000000
-}
-enum OP_MASK : ubyte{
-	z = 0b111,
-	y = 0b111000,
-	q = 0b1000,
-	p = 0b110000,
-	x = 0b11000000
-}
-//Modos de direccionamiento
-enum DIR{
-	K,
-	CONST = K,
-	A,
-	ADDRESS = A,
-	P,
-	POINTER = P,
-	R,
-	REGISTER = R,
-	I,
-	REG_IND = I
-}
+public import maud.vm.constants;
 
 /**
  * Simulador Zilog Z80
@@ -326,7 +231,7 @@ class Z80VM //: VMInterface
 									reg2[RE.HL2] = fetch2(fetch2(PCs+1));
 									time_i +=16;
 									break;
-								case 3://LD A,  (nn)
+								case 3://LD A, (nn)
 									skip(3);
 									reg[RE.A] = fetch(fetch2(PCs+1));
 									time_i += 13;

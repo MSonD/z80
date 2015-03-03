@@ -20,6 +20,12 @@ int[2] testVM(){
 		pass = pass & premise;
 	}
 
+	bool littleBig(){
+		vm.setRegister2(RE.HL2,0x0102);
+		vali(vm.register(RE.H) == 0x01);
+		return pass;
+	}
+
 	bool LD_RR_NN(){
 		//LD SP, 201H
 		zero[0] = 0x31;
@@ -196,19 +202,25 @@ int[2] testVM(){
 	}
 
 	bool LD_HL_NN(){
+		zero[0] = 0x2A;
+		zero[1] = 0x50;
+		zero[2] = 0x20;
+		zero[0x2050] = 0x19;
+		zero[0x2051] = 0x86;
+
+		vm.execStep();
+		vali(vm.register(RE.H) == 0x86);
+		vali(vm.register(RE.L) == 0x19);
+
 		return pass;
 	}
 
-	mixin(TestElem!(LD_RR_NN,DJNZ_D,JR_D,JR_CC_D,EX_AF_AF,ADD_HL_RR,LD_mRR_A,LD_A_mRR));
+	mixin(TestElem!(littleBig,LD_RR_NN,DJNZ_D,JR_D,JR_CC_D,EX_AF_AF,ADD_HL_RR,LD_mRR_A,LD_A_mRR,LD_HL_NN));
 
 	return [passed, nopassed];
 }
 
-template Test(T...){
-
-}
-
-template TestElem(T...){
+private template TestElem(T...){
 	static if(T.length == 0){
 		enum TestElem = "";
 	}else{
