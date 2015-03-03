@@ -321,6 +321,16 @@ class Z80VM //: VMInterface
 									reg[RE.A] = fetch(reg2[RE.DE2]);
 									time_i+=7;
 									break;
+								case 2://LD HL, (nn)
+									skip(3);
+									reg2[RE.HL2] = fetch2(fetch2(PCs+1));
+									time_i +=16;
+									break;
+								case 3://LD A,  (nn)
+									skip(3);
+									reg[RE.A] = fetch(fetch2(PCs+1));
+									time_i += 13;
+									break;
 								default:
 							}
 						}

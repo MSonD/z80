@@ -14,15 +14,13 @@ int[2] testVM(){
 	auto mem = arrayMem.create(64*1024);
 	auto zero = mem.getAddress(0);
 	auto vm = new Z80VM(mem);
-	bool pass;
+	bool pass = true;
 
-	void vali(bool premise){
+	void vali(lazy bool premise){
 		pass = pass & premise;
 	}
 
 	bool LD_RR_NN(){
-		vm.restart();
-		pass = true;
 		//LD SP, 201H
 		zero[0] = 0x31;
 		zero[1] = 0x01;
@@ -37,21 +35,18 @@ int[2] testVM(){
 		zero[8] = 0xFF;
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.SP2) == 0x201);
+		vali (vm.register2(RE.SP2) == 0x201);
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.HL2) == 0x1211);
+		vali (vm.register2(RE.HL2) == 0x1211);
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.BC2) == 0xFFAA);
+		vali (vm.register2(RE.BC2) == 0xFFAA);
 
 		return pass;
 	}
 
 	bool DJNZ_D(){
-		vm.restart();
-		pass = true;
-
 		zero[0] = 0x10;
 		zero[1] = 0x05;
 
@@ -64,21 +59,18 @@ int[2] testVM(){
 		vm.setRegister(RE.B,1);
 		vm.execStep();
 
-		pass = pass && (vm.register2(RE.PC2) == 0x2);
+		vali (vm.register2(RE.PC2) == 0x2);
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.PC2) == 0x9);
+		vali (vm.register2(RE.PC2) == 0x9);
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.PC2) == 0x0);
+		vali (vm.register2(RE.PC2) == 0x0);
 
 		return pass;
 	}
 
 	bool JR_D(){
-		vm.restart();
-		pass = true;
-
 		//JR 1
 		zero[0] = 0x18;
 		zero[1] = 0x01;
@@ -87,19 +79,16 @@ int[2] testVM(){
 		zero[4] = cast(ubyte)(-3);
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.PC2) == 0x3);
+		vali (vm.register2(RE.PC2) == 0x3);
 		
 		vm.execStep();
-		pass = pass && (vm.register2(RE.PC2) == 0x2);
+		vali (vm.register2(RE.PC2) == 0x2);
 
 		return pass;
 	}
 
 
 	bool JR_CC_D(){
-		vm.restart();
-		pass = true;
-		
 		//JR NZ, FF
 		zero[0] = 0x20;
 		zero[1] = 0xFF;
@@ -115,22 +104,20 @@ int[2] testVM(){
 
 		vm.setRegister(RE.F,FLAG_MASK.Z);
 		vm.execStep();
-		pass = pass && (vm.register2(RE.PC2) == 0x2);
+		vali (vm.register2(RE.PC2) == 0x2);
 		vm.execStep();
-		pass = pass && (vm.register2(RE.PC2) == 0x5);
+		vali (vm.register2(RE.PC2) == 0x5);
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.PC2) == 0x7);
+		vali (vm.register2(RE.PC2) == 0x7);
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.PC2) == 0x9);
+		vali (vm.register2(RE.PC2) == 0x9);
 		return pass;
 	}
 
 	bool EX_AF_AF(){
-		vm.restart();
-		pass = true;
-		
+		//EX AF AF
 		zero[0] = 0x08;
 		zero[1] = 0x08;
 		
@@ -138,20 +125,17 @@ int[2] testVM(){
 		vm.setRegister(RE.F,0xCA);
 
 		vm.execStep();
-		pass = pass && (vm.register(RE.AP) == 0xBA);
-		pass = pass && (vm.register(RE.FP) == 0xCA);
+		vali (vm.register(RE.AP) == 0xBA);
+		vali (vm.register(RE.FP) == 0xCA);
 
 		vm.execStep();
-		pass = pass && (vm.register(RE.A) == 0xBA);
-		pass = pass && (vm.register(RE.A) == 0xBA);
+		vali (vm.register(RE.A) == 0xBA);
+		vali (vm.register(RE.A) == 0xBA);
 
 		return pass;
 	}
 
 	bool ADD_HL_RR(){
-		vm.restart();
-		pass = true;
-
 		//ADD HL, BC
 		zero[0] = 0x09;
 		//ADD HL, DE
@@ -165,22 +149,19 @@ int[2] testVM(){
 		vm.setRegister2(RE.SP2,cast (ushort)(0xF - 0xCCDD));
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.HL2) == 0xCCDD);
-		pass = pass && !(vm.register(RE.F) & FLAG_MASK.N);
-		pass = pass && !(vm.register(RE.F) & FLAG_MASK.C);
+		vali (vm.register2(RE.HL2) == 0xCCDD);
+		vali (!(vm.register(RE.F) & FLAG_MASK.N));
+		vali (!(vm.register(RE.F) & FLAG_MASK.C));
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.HL2) == 0xCCDD - 0xF);
+		vali (vm.register2(RE.HL2) == 0xCCDD - 0xF);
 
 		vm.execStep();
-		pass = pass && (vm.register2(RE.HL2) == 0);
+		vali (vm.register2(RE.HL2) == 0);
 		return pass;
 	}
 
 	bool LD_mRR_A (){
-		vm.restart();
-		pass = true;
-		
 		//LD (BC), A
 		zero[0] = 0x02;
 
@@ -197,9 +178,6 @@ int[2] testVM(){
 	}
 
 	bool LD_A_mRR (){
-		vm.restart();
-		pass = true;
-
 		//LD A, (BC)
 		zero[0] = 0x0A;
 		//LD A, (DE)
@@ -217,6 +195,9 @@ int[2] testVM(){
 		return pass;
 	}
 
+	bool LD_HL_NN(){
+		return pass;
+	}
 
 	mixin(TestElem!(LD_RR_NN,DJNZ_D,JR_D,JR_CC_D,EX_AF_AF,ADD_HL_RR,LD_mRR_A,LD_A_mRR));
 
@@ -239,7 +220,8 @@ template TestElem(T...){
 			"}else{"
 				"writeln(\"FAILED\");"
 				"nopassed++;"
-				"}"~
+				"}"
+				"vm.restart();pass = true;"~
 			TestElem!(T[1..$]);
 	}
 }
