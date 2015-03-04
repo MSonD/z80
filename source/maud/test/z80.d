@@ -93,7 +93,7 @@ int[2] testVM(){
 		return pass;
 	}
 
-
+	
 	bool JR_CC_D(){
 		//JR NZ, FF
 		zero[0] = 0x20;
@@ -202,9 +202,11 @@ int[2] testVM(){
 	}
 
 	bool LD_HL_NN(){
+		//LD HL, (2050H)
 		zero[0] = 0x2A;
 		zero[1] = 0x50;
 		zero[2] = 0x20;
+
 		zero[0x2050] = 0x19;
 		zero[0x2051] = 0x86;
 
@@ -215,7 +217,19 @@ int[2] testVM(){
 		return pass;
 	}
 
-	mixin(TestElem!(littleBig,LD_RR_NN,DJNZ_D,JR_D,JR_CC_D,EX_AF_AF,ADD_HL_RR,LD_mRR_A,LD_A_mRR,LD_HL_NN));
+	bool LD_A_NN(){
+		zero[0] = 0x3A;
+		zero[1] = 0x02;
+		zero[2] = 0x00;
+		zero[3] = 0xAA;
+		//
+		return pass;
+	}
+
+	mixin(TestElem!(littleBig, LD_RR_NN, DJNZ_D,
+			JR_D, JR_CC_D, EX_AF_AF, ADD_HL_RR,
+			LD_mRR_A, LD_A_mRR, LD_HL_NN
+			));
 
 	return [passed, nopassed];
 }
@@ -229,11 +243,11 @@ private template TestElem(T...){
 			"if("~id~"()){"
 				"writeln(\"PASSED\");"
 				"passed++;"
-			"}else{"
+				"}else{"
 				"writeln(\"FAILED\");"
 				"nopassed++;"
 				"}"
 				"vm.restart();pass = true;"~
-			TestElem!(T[1..$]);
+				TestElem!(T[1..$]);
 	}
 }
