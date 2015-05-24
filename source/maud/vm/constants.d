@@ -1,7 +1,7 @@
 ﻿module maud.vm.constants;
 
 version(LittleEndian)
-enum RE{
+enum RE : size_t{
 	F = 0,
 	AF = 0,
 	A,
@@ -52,11 +52,28 @@ enum RE{
 	HL2 = HL/2,
 	PC2 = PC/2,
 	SP2 = SP/2,
+	IX2  = IX/2,
+	IY2 = IY/2,
 	AFP2 = AFP/2, 
 	BCP2 = BCP/2,
 	DEP2 = DEP/2,
 	HLP2 = HLP/2
 	
+}
+
+enum RE2 : size_t{
+	AF = 0x80,
+	BC,
+	DE,
+	HL,
+	IX,
+	IY,
+	SP,
+	PC,
+	AFP,
+	BCP,
+	DEP,
+	HLP
 }
 enum FLAG_MASK : ubyte{
 	C = 0b1,
@@ -66,6 +83,7 @@ enum FLAG_MASK : ubyte{
 	Z = 0b1000000,
 	S = 0b10000000
 }
+enum SIGN_BIT = 0b10000000;
 enum OP_MASK : ubyte{
 	z = 0b111,
 	y = 0b111000,

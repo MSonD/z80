@@ -5,21 +5,26 @@ alias loc_t = ubyte;
 
 interface VMInterface
 {
-	MemInterface getMemoryRange();
-	void setMemoryRange(MemInterface f);
-	size_t getStackAddress();
-	size_t getStackSize();
-	void execute();
+	MemInterface memory();
+	void setMemory(MemInterface f);
+	size_t getStackIdx() const;
+	size_t getStackSize() const;
+	size_t getNetSize();
 	void executeStep();
-	ulong getRegisterStatus(size_t reg);
-	void setRegisterStatus(size_t reg,ulong x);
+	void executeStep(bool stringout, bool dryrun);
+	uint getRegister(size_t reg);
+	void setRegister(size_t reg,uint x);
+	uint getPC();
+	void setPC(uint x);
+	void restart();
+	bool isHalted();
 	size_t getWordSize();
 
 	static VMInterface create();
 }
 
 interface MemInterface{
-	loc_t* getAddress(size_t n, short wordsize = 1);
+	loc_t* getAddress(size_t n = 0, short wordsize = 1);
 	size_t size();
 	static MemInterface create(size_t size);
 	/+

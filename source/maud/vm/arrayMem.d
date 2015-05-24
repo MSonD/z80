@@ -1,11 +1,11 @@
 ﻿module maud.vm.arrayMem;
 import maud.vm.vmi;
 import maud.vm.error;
-class arrayMem : MemInterface
+class ArrayMem : MemInterface
 {
 	private size_t[] arr;
 	loc_t* acc;
-	private this (size_t size){
+	this (size_t size){
 		//Redondear hacia arriba
 		auto rmd = size%size_t.sizeof;
 		arr.length = (size-rmd)/size_t.sizeof + (rmd == 0?0:1);
@@ -41,7 +41,7 @@ class arrayMem : MemInterface
 
 	//Size in bytes
 	static MemInterface create(size_t size){
-		return new arrayMem(size);
+		return new ArrayMem(size);
 	}
 }
 

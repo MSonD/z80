@@ -1,8 +1,17 @@
 ﻿module maud.vm.util;
 
+mixin (generateHexMap8!"HEX_MAP");
+
 //Carácteres por defecto hasta base 64
 immutable string default_map = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/\\";
+immutable dstring ds_map = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz/\\";
 
+template DefaultMap(T){
+	static if(is(T == char))
+		enum DefaultMap = default_map;
+	else static if(is(T == dchar))
+		enum DefaultMap = ds_map;
+}
 //Es el tipo un tipo entero
 template isInteger(T){
 	enum isInteger = is(T : long) | is(T : ulong);
@@ -55,7 +64,7 @@ T gen1s(T)(size_t digits){
 /**
  * Genera una cadena representando el valor de un número en base n. Donde n es una potencia de 2
  * **/
-void naryToStrMap(T, W, size_t radix)(T number, W[] buff, immutable(W)[] map = default_map, size_t max = 0) if (isInteger!T){
+void naryToStrMap(T, W, size_t radix)(T number, W[] buff, immutable(W)[] map = DefaultMap!W, size_t max = 0) if (isInteger!T){
 	static if( is2power(radix) ){
 		toUnsigned!T num = number;
 		enum bsize = log2(radix);
@@ -99,4 +108,32 @@ string binToStr(T)(T number, size_t max = 0) if (isInteger!T){
 	auto buff = new char[max > 0? max : T.sizeof*2];
 	binToStr!(16,T)(number,buff,max);
 	return buff;
+}
+
+dstring binToStrd(T)(T number, size_t max = 0) if (isInteger!T){
+	auto buff = new dchar[max > 0? max : T.sizeof*2];
+	naryToStrMap!(T,dchar,16)(number,buff,ds_map, max);
+	return buff;
+}
+
+
+template generateHexMap8(string name){
+	enum generateHexMap8 = "immutable dstring[] "~name~" = ["~
+		generateHexMap8_loop!0~"];";
+}
+
+template generateHexMap8_loop(uint nb){
+	static if(nb == 255)
+		enum generateHexMap8_loop = "\"FF\"";
+	else{
+		enum generateHexMap8_loop = "\""d ~ ds_map[nb/16] ~ ds_map[nb%16]~ "\","d~ generateHexMap8_loop!(nb+1);
+	}
+}
+
+
+bool isEvenParity(ubyte x){
+	x ^= x>>4;
+	x ^= x>>2;
+	x ^= x>>1;
+	return (x&1) == 0;
 }

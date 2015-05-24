@@ -1,5 +1,5 @@
 ﻿module maud.defines;
-
+public import log = std.experimental.logger;
 version(SAFE){
 	pragma(msg,"Compiling with limit checking");
 }

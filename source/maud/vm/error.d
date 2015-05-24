@@ -44,7 +44,6 @@ class VMProtectionException : VMException{
 	}
 }
 
-
 class VMInternalException : VMException{
 	this(string msg = ""){
 		if(msg != "")
@@ -53,3 +52,5 @@ class VMInternalException : VMException{
 			super ("Error interno");
 	}
 }
+
+///  Rock. You are a rock. Gray. You are gray.
