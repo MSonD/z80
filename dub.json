@@ -1,8 +1,10 @@
 {
 	"name": "maud",
-	"description": "A minimal D application.",
-	"copyright": "Copyright © 2015, celly",
-	"authors": ["celly"],
+	"description": "A Z80 simulator.",
+	"copyright": "Copyright © 2015, GAMS",
+	"authors": ["zk"],
 	"dependencies": {
+		"dlangui" : "0.6.27",
+		"luad" : "~master"
 	}
 }
