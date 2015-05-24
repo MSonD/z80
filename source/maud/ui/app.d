@@ -54,7 +54,7 @@ class MainApp
 		info.res_btn.addOnClickListener( delegate bool(Widget x){
 				c.VM.restart();
 				info.onUpdate.update();
-
+				timer.running = false;
 				return true;
 			});
 		info.step_btn.addOnClickListener( delegate bool(Widget x){
@@ -93,8 +93,10 @@ class MainApp
 		window.mainWidget = lay;
 
 		c.getLua()["open"] = &openFile;
-		// show window
-		log_window.show();
+		// show window, does not work on Windows
+		version(Windows){}else{
+			log_window.show();
+		}
 		window.show();
 	}
 

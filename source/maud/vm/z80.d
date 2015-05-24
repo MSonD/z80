@@ -638,7 +638,6 @@ class Z80VM : VMInterface
 			opcode = fetch(PCs + 1);
 			PCs--;
 		}
-		std.stdio.writefln("%X",opcode);
 		ubyte z_code, y_code, x_code;
 		string s_string;
 		
@@ -1027,7 +1026,6 @@ class Z80VM : VMInterface
 	void swapHL(HSWAP p){
 		ushort* dst;
 		ushort tmp;
-		std.stdio.writeln("S", HL_swap);
 		with(HSWAP)	switch(HL_state){
 			case IX:
 				reg2[RE.IX2] = reg2[RE.HL2];

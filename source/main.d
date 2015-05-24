@@ -14,16 +14,16 @@ extern (C) int UIAppMain(string[] args) {
 
 	// create window
 	bool doTests;
-	getopt(args, "test", &doTests);
-
+	//Does not works on windows
+	version(Windows){}else{
+		getopt(args, "test", &doTests);
+	}
 	if(doTests) {pmain; return 0;}
 
 	auto c = new ApplicationContext(new Z80VM( new ArrayMem(64*1024 + 32)));
 
 	auto app = new MainApp(c);
-	//FileDialog dlg = createFileDialog("gg");
-//	dlg.show();
-	// run message loop
+
 	return Platform.instance.enterMessageLoop();
 }
 
